@@ -80,7 +80,8 @@ colnames(melted)<-c("ecnumber","genome","Sample","RNA count")
 
 melted <- with(melted, melted[order(ecnumber, genome, Sample),])
 
-#TODO: somewhere around here is where we want to normalize by species DNA counts
+#TODO ####
+# somewhere around here is where we want to normalize by species DNA counts
 
 plot.bar = ggplot(data=melted, aes(x=Sample, y=`RNA count`, fill=genome))
 plot.bar + geom_bar(stat="identity", col="black", size = .5) + facet_grid(~ecnumber) + theme(text = element_text(size=12)) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) #+ guides(fill=FALSE)
