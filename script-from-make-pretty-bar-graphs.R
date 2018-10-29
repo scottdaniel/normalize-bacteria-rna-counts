@@ -8,6 +8,10 @@ graph_data <- raw_graph_data
 
 sum_by_species <- rowsum(graph_data[,c("percDNA1","percDNA2","percDNA3","percDNA4")],graph_data$species,reorder = T)
 
+#to be used in script-from-bacteria-bowtie.R
+graph_data <- read.csv("strain_source_data_for_R_based_on_new_normalization.csv")
+sum_by_strain <- rowsum(graph_data[,c("One_norm","Two_norm","Three_norm","Four_norm")],graph_data$genome_name,reorder = T)
+
 first_graph <- sum_by_species[c("Mucispirillum schaedleri","Lactobacillus murinus","Lactobacillus plantarum","Lachnospiraceae bacterium A4","Helicobacter hepaticus","Parabacteroides distasonis"),]
 
 first_graph$bacteria <- factor(row.names(first_graph),levels=c("Mucispirillum schaedleri","Lactobacillus murinus","Lactobacillus plantarum","Lachnospiraceae bacterium A4","Helicobacter hepaticus","Parabacteroides distasonis"),labels = c("M.schaedleri","L.murinus","L.plantarum","L.bacterium-A4","H.hepaticus","P.distasonis"))

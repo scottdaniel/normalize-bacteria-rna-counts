@@ -1,3 +1,5 @@
+source("script-from-make-pretty-bar-graphs.R")
+
 setwd("/Users/Scott/Google Drive/Archived/Hurwitz Lab/cuffnorm-out")
 
 library(RColorBrewer)
@@ -64,6 +66,16 @@ important <- merge(x=important2[,c(4:9)],y=genome_to_feature,by.x="tracking_id",
 # important <- merge(x=four[,c(1:5,6,7)],y=genome_to_feature,by.x="tracking_id",by.y="refseq_locus_tag",all.x=T)
 #important2$genome_name <- lapply(important$genome_name, as.character)
 #important[is.na(important)]<-"unknown"
+
+sum_by_species <- rowsum(graph_data[,c("One_norm","Two_norm","Three_norm","Four_norm")],graph_data$species,reorder = T)
+sum_by_species$species <- rownames(sum_by_species)
+
+important <- merge(important,sum_by_species,by.x="genome_name",by.y="species")
+
+#ack, that's a lot smaller than it should be
+#probably because the species' names on the DNA side of things came from PATRIC
+#and the species names on the RNA side of things came from NCBI
+
 
 colnames(important)[3:6]<-c("S+H+ (H. hepaticus)","S-H+ (Combined)","S+H- (Control)","S-H- (Smad3-/-)")
 
@@ -187,3 +199,4 @@ plot.bar <- ggplot(data=melted, aes(x=Sample, y=`RNA count`, fill=genome, toolti
 
 ggiraph(code = print(plot.bar))
 
+detach(just_lps_products_annot)
