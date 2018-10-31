@@ -1,3 +1,4 @@
+setwd("~/normalize-bacteria-rna-counts/")
 source("script-from-make-pretty-bar-graphs.R")
 
 setwd("/Users/Scott/Google Drive/Archived/Hurwitz Lab/cuffnorm-out")
@@ -67,17 +68,21 @@ important <- merge(x=important2[,c(4:9)],y=genome_to_feature,by.x="tracking_id",
 #important2$genome_name <- lapply(important$genome_name, as.character)
 #important[is.na(important)]<-"unknown"
 
-sum_by_species <- rowsum(graph_data[,c("One_norm","Two_norm","Three_norm","Four_norm")],graph_data$species,reorder = T)
-sum_by_species$species <- rownames(sum_by_species)
+sum_by_strain$genome_name = row.names(sum_by_strain)
 
-important <- merge(important,sum_by_species,by.x="genome_name",by.y="species")
+important <- merge(important,sum_by_strain,by="genome_name")
 
-#ack, that's a lot smaller than it should be
-#probably because the species' names on the DNA side of things came from PATRIC
-#and the species names on the RNA side of things came from NCBI
+important <- important[important$One_norm != 0,]
+important <- important[important$Two_norm != 0,]
+important <- important[important$Three_norm != 0,]
+important <- important[important$Four_norm != 0,]
 
+important$S1_FPM = important$S1_FPM / important$One_norm
+important$S2_FPM = important$S2_FPM / important$Two_norm
+important$S3_FPM = important$S3_FPM / important$Three_norm
+important$S4_FPM = important$S4_FPM / important$Four_norm
 
-colnames(important)[3:6]<-c("S+H+ (H. hepaticus)","S-H+ (Combined)","S+H- (Control)","S-H- (Smad3-/-)")
+colnames(important)[4:7]<-c("S+H+ (H. hepaticus)","S-H+ (Combined)","S+H- (Control)","S-H- (Smad3-/-)")
 
 #cut out all the unnecessary stuff so they group appropriately
 # important$product_name<-gsub('.*arginine decarboxylase.*','arginine decarboxylase',important$product_name,perl = T)
@@ -85,18 +90,18 @@ colnames(important)[3:6]<-c("S+H+ (H. hepaticus)","S-H+ (Combined)","S+H- (Contr
 # important$product_name<-gsub('.*n-carbamoylputrescine amidase.*','n-carbamoylputrescine amidase',important$product_name,perl = T)
 
 important$genome_name<-as.character(important$genome_name)
-melted<-melt(important[,c(2:7)])
+melted<-melt(important[,c(1,3:7)])
 order<-c("S+H- (Control)","S-H- (Smad3-/-)","S+H+ (H. hepaticus)","S-H+ (Combined)")
 melted <- melted %>% mutate(variable =  factor(variable, levels = order)) %>% arrange(variable)
-colnames(melted)<-c("ecnumber","genome","Sample","RNA count")
+colnames(melted)<-c("genome","ecnumber","Sample","RNA / DNA count ratio")
 
 melted <- with(melted, melted[order(ecnumber, genome, Sample),])
 
-#TODO ####
-# somewhere around here is where we want to normalize by species DNA counts
-
-plot.bar = ggplot(data=melted, aes(x=Sample, y=`RNA count`, fill=genome))
+plot.bar = ggplot(data=melted, aes(x=Sample, y=`RNA / DNA count ratio`, fill=genome))
 plot.bar + geom_bar(stat="identity", col="black", size = .5) + facet_grid(~ecnumber) + theme(text = element_text(size=12)) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) #+ guides(fill=FALSE)
+
+#so, taking together only species that have both DNA and RNA counts the only thing that actually increases is in the SMAD3 knockout, hahahahahahahahaha!
+
 plot.bar + geom_bar(stat="identity", col="black", size = .5) + facet_grid(~ecnumber) + theme(text = element_text(size=12)) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + guides(fill=FALSE)
 
 #interactive
@@ -128,21 +133,37 @@ important2 <- merge(x=important[,1:4],y=filtered_annotated,by.x="product",by.y="
 important <- merge(x=important2[,c(4:9)],y=genome_to_feature,by.x="tracking_id",by.y="refseq_locus_tag",all.x=T)
 important$genome_name <- lapply(important$genome_name, as.character)
 #important[is.na(important)]<-"unknown"
+sum_by_strain$genome_name = row.names(sum_by_strain)
 
+important <- merge(important,sum_by_strain,by="genome_name",sort = F)
 
-colnames(important)[3:6]<-c("S+H+ (H. hepaticus)","S-H+ (Combined)","S+H- (Control)","S-H- (Smad3-/-)")
+important <- important[important$One_norm != 0,]
+important <- important[important$Two_norm != 0,]
+important <- important[important$Three_norm != 0,]
+important <- important[important$Four_norm != 0,]
+
+important$S1_FPM = important$S1_FPM / important$One_norm
+important$S2_FPM = important$S2_FPM / important$Two_norm
+important$S3_FPM = important$S3_FPM / important$Three_norm
+important$S4_FPM = important$S4_FPM / important$Four_norm
+
+colnames(important)[4:7]<-c("S+H+ (H. hepaticus)","S-H+ (Combined)","S+H- (Control)","S-H- (Smad3-/-)")
 #important$product_name<-gsub('.*butyrate kinase.*','butyrate kinase',important$product_name,perl = T)
 #important$product_name<-gsub('.*phosphate butyryltransferase.*','phosphate butyryltransferase',important$product_name,perl = T)
 
 important$genome_name<-as.character(important$genome_name)
-melted<-melt(important[,c(2:7)])
+melted<-melt(important[,c(1,3:7)])
 order<-c("S+H- (Control)","S-H- (Smad3-/-)","S+H+ (H. hepaticus)","S-H+ (Combined)")
 melted <- melted %>% mutate(variable =  factor(variable, levels = order)) %>% arrange(variable)
-colnames(melted)<-c("ecnumber","genome","Sample","RNA count")
+colnames(melted)<-c("genome","ecnumber","Sample","RNA / DNA count ratio")
 
 melted <- with(melted, melted[order(ecnumber, genome, Sample),])
-plot.bar = ggplot(data=melted, aes(x=Sample, y=`RNA count`, fill=genome))
+
+plot.bar = ggplot(data=melted, aes(x=Sample, y=`RNA / DNA count ratio`, fill=genome))
 plot.bar + geom_bar(stat="identity", col="black", size = .5) + facet_grid(~ecnumber) + theme(text = element_text(size=12)) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) #+ guides(fill=FALSE)
+
+#wow, that's a whole lot of nothing
+
 plot.bar + geom_bar(stat="identity", col="black", size = .5) + facet_grid(~ecnumber) + theme(text = element_text(size=12)) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + guides(fill=FALSE)
 
 plot.bar <- ggplot(data=melted, aes(x=Sample, y=`RNA count`, fill=genome, tooltip = genome, data_id = Sample)) + geom_bar_interactive(stat="identity", col="black", size = .5) + facet_grid(~ecnumber) + theme(text = element_text(size=12)) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + guides(fill=FALSE)
